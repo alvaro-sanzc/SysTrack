@@ -23,9 +23,10 @@ function normalizePort(val) {
 function onError(error) {
   if (error.syscall !== 'listen') throw error;
 
-  const bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
+  const bind =
+    typeof port === 'string'
+      ? 'Pipe ' + port
+      : 'Port ' + port;
 
   switch (error.code) {
     case 'EACCES':
@@ -40,5 +41,11 @@ function onError(error) {
 }
 
 function onListening() {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
+  const addr = server.address();
+  const bind =
+    typeof addr === 'string'
+      ? 'pipe ' + addr
+      : 'port ' + addr.port;
+
+  console.log(`Server listening on ${bind}. \nServer running on http://localhost:${port}/`);
 }
