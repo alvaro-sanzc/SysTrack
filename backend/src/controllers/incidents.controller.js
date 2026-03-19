@@ -10,4 +10,46 @@ const getIncidents = async (req, res) => {
   }
 };
 
-module.exports = { getIncidents };
+const createIncidents = async (req, res) => {
+    try {
+        const {user_name, title, description, severity} = req.body;
+        
+        // Validate fields to prevent unexpected input
+        const allowFields = ['user_name', 'title', 'description', 'severity'];
+        const receivedFields = Object.keys(req.body);
+
+        const invalidFields = receivedFields.filter(
+            field => !allowFields.includes(field)
+        );
+
+        if(invalidFields.length > 0){
+            return res.status(400).json({
+                message: "Permited fields: user_name, title, description, severity",
+                error: `Invalid fields: ${invalidFields.join(', ')}`
+            });
+        }
+
+        // Ensure required fields 
+        if(!user_name|| !title || !severity){
+           return res.json("Missing required fields: user_name, title, severity");
+        }
+
+        // Ensure "severity" values
+        const validSeverities = ["low", "medium", "high", "critical", "info"]
+        if(!validSeverities.includes(severity)){
+            res.json("severity can only be: low, medium, high, critical or info")
+        }
+
+        const result = db.query(`
+            INSERT INTO INCIDENTS (user_name, title, description, severity) 
+            VALUES ($1, $2, $3, $4)`,
+            [user_name, title, description, severity]
+        );
+        res.status(201).json((await result).rows[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({error: 'Error creating incidents'});
+    }
+};
+
+module.exports = { getIncidents, createIncidents };
