@@ -10,6 +10,9 @@ app.get('/', (req, res) => {
   res.send('API funcionando');
 });
 
+const incidents = require('./routes/incidents');
+app.use('/incidents',incidents);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
