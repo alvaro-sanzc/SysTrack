@@ -37,7 +37,7 @@ const createIncidents = async (req, res) => {
         // Ensure "severity" values
         const validSeverities = ["low", "medium", "high", "critical", "info"]
         if(!validSeverities.includes(severity)){
-            res.json("severity can only be: low, medium, high, critical or info")
+            return res.json("severity can only be: low, medium, high, critical or info")
         }
 
         const result = db.query(`
@@ -52,4 +52,31 @@ const createIncidents = async (req, res) => {
     }
 };
 
-module.exports = { getIncidents, createIncidents };
+const deleteIncident = async (req,res) => {
+    try {
+        const id = parseInt(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid ID' });
+        }
+
+        const result = db.query(`
+            DELETE FROM INCIDENTS WHERE id=$1`,
+            [id]
+        );
+        if((await result).rowCount == 0){
+            return res.status(404).json({error: 'id not found'})
+        }
+
+        res.status(200).json({
+            message: 'Deleted succesfully',
+            incident: (await result).rows[0]
+        })
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({error: 'Error deleting incidents'});
+        
+    }
+};
+
+module.exports = { getIncidents, createIncidents, deleteIncident };
