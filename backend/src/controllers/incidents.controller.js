@@ -52,6 +52,91 @@ const createIncidents = async (req, res) => {
     }
 };
 
+const updateIncident = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { user_name, title, description, severity, status } = req.body;
+
+        // Validate ID
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid ID' });
+        }
+
+       
+        const allowedFields = ['user_name', 'title', 'description', 'severity', 'status'];
+        const receivedFields = Object.keys(req.body);
+
+        const invalidFields = receivedFields.filter(
+            field => !allowedFields.includes(field)
+        );
+
+        if (invalidFields.length > 0) {
+            return res.status(400).json({
+                message: "Permitted fields: user_name, title, description, severity, status",
+                error: `Invalid fields: ${invalidFields.join(', ')}`
+            });
+        }
+
+        // Validate severity
+        const validSeverities = ["low", "medium", "high", "critical", "info"];
+        if (severity && !validSeverities.includes(severity)) {
+            return res.status(400).json({
+                error: "severity must be: low, medium, high, critical, info"
+            });
+        }
+
+        // Validate status
+        const validStatus = ["open", "in_progress", "resolved"];
+        if (status && !validStatus.includes(status)) {
+            return res.status(400).json({
+                error: "status must be: open, in_progress, resolved"
+            });
+        }
+
+        // Dinamic query due to is a PATCH not a PUT
+        const fields = [];
+        const values = [];
+        let index = 1;
+
+        for (let key of allowedFields) {
+            if (req.body[key] !== undefined) {
+                fields.push(`${key} = $${index}`);
+                values.push(req.body[key]);
+                index++;
+            }
+        }
+
+        if (fields.length === 0) {
+            return res.status(400).json({ error: 'No fields to update' });
+        }
+
+        // ADD id
+        values.push(id);
+
+        const query = `
+            UPDATE incidents
+            SET ${fields.join(', ')}
+            WHERE id = $${index}
+            RETURNING *
+        `;
+
+        const result = await db.query(query, values);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Incident not found' });
+        }
+
+        return res.status(200).json({
+            message: 'Incident updated successfully',
+            incident: result.rows[0]
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Error updating incident' });
+    }
+};
+
 const deleteIncident = async (req,res) => {
     try {
         const id = parseInt(req.params.id);
@@ -79,4 +164,4 @@ const deleteIncident = async (req,res) => {
     }
 };
 
-module.exports = { getIncidents, createIncidents, deleteIncident };
+module.exports = { getIncidents, createIncidents, updateIncident, deleteIncident };
