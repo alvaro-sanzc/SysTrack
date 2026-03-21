@@ -1,13 +1,23 @@
 const db = require('../db/conn');
-
 const getIncidents = async (req, res) => {
-  try {
-    const result = await db.query('SELECT * FROM incidents');
-    res.json(result.rows);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error fetching incidents' });
-  }
+    try {
+        const { user_name } = req.query;
+
+        let query = "SELECT * FROM incidents";
+        let values = [];
+
+        if (user_name) {
+            query += " WHERE user_name = $1";
+            values.push(user_name);
+        }
+
+        const result = await db.query(query, values);
+
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error fetching incidents" });
+    }
 };
 
 const createIncidents = async (req, res) => {
