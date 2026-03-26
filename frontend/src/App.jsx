@@ -67,10 +67,10 @@ function App() {
   const updateIncident = async (id, inc) => {
     const updatedData = {
       title: editData.title ?? inc.title,
+      description: editData.description ?? inc.description,
       user_name: editData.user_name ?? inc.user_name,
       severity: editData.severity ?? inc.severity,
-      status: editData.status ?? inc.status,
-      description: editData.description ?? inc.description
+      status: editData.status ?? inc.status
     };
 
     await fetch(`http://localhost:3000/incidents/${id}`, {
@@ -140,8 +140,8 @@ function App() {
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ background: "#222" }}>
-            <th>ID</th>
             <th>Title</th>
+            <th>Description </th>
             <th>User</th>
             <th>Severity</th>
             <th>Status</th>
@@ -155,7 +155,6 @@ function App() {
               key={inc.id}
               style={{ borderBottom: "1px solid #444", textAlign: "center" }}
             >
-              <td>{inc.id}</td>
 
               <td>
                 {editingId === inc.id ? (
@@ -170,6 +169,21 @@ function App() {
                   />
                 ) : (
                   inc.title
+                )}
+              </td>
+              <td>
+                {editingId === inc.description ? (
+                  <input
+                    defaultValue={inc.description}
+                    onChange={(e) =>
+                      setEditData((prev) => ({
+                        ...prev,
+                        description: e.target.value
+                      }))
+                    }
+                  />
+                ) : (
+                  inc.description
                 )}
               </td>
 
